@@ -4,58 +4,61 @@
 8767896789
 9899965678";
 
-int sum = 0;
-
 var lines = data.Split('\n');
-var length = lines[0].Length;
 
-for (int i = 0; i < lines.Length; ++i)
+var height = lines.Length;
+var width = lines[0].Length;
+
+var area = new int[height, width];
+var visited = new int[height, width];
+
+for (int h = 0; h < height; ++h)
 {
-    for (int j = 0; j < length; j++)
+    for (int w = 0; w < width; w++)
     {
-        int num = lines[i][j] - '0';
-        
-        int top = int.MaxValue;
-        int bot = int.MaxValue;
-        int left = int.MaxValue;
-        int right = int.MaxValue;
-
-        if (i > 0)
-        {
-            top = lines[i - 1][j] - '0';
-            
-            if(top <= num)
-                continue;
-        }
-
-        if (i < lines.Length - 1)
-        {
-            bot = lines[i + 1][j] - '0';
-            
-            if(bot <= num)
-                continue;
-        }
-
-        if (j > 0)
-        {
-            left = lines[i][j - 1] - '0';
-            
-            if(left <= num)
-                continue;
-        }
-
-        if (j < length - 1)
-        {
-            right = lines[i][j + 1] - '0';
-            
-            if(right <= num)
-                continue;
-        }
-        
-        Console.WriteLine($"({i}, {j}) = {num}");
-
-        sum += num + 1;
+        area[h, w] = lines[h][w] - '0';
+        visited[h, w] = 0;
     }
 }
 
-Console.WriteLine(sum);
+var basins = new List<int>();
+
+for (int h = 0; h < height; h++)
+{
+    for (int w = 0; w < width; w++)
+    {
+        int basin = RecursiveVisit(h, w);
+        if (basin > 0)
+            basins.Add(basin);
+    }
+}
+
+var result = basins.OrderByDescending(i => i).Take(3).Aggregate((current, next) => current * next);
+Console.WriteLine(result);
+
+int RecursiveVisit(int h, int w)
+{
+    if (area[h, w] == 9)
+        return 0;
+    
+    if (visited[h, w] == 1)
+        return 0;
+    
+    visited[h, w] = 1;
+
+    int sum = 1;
+    
+    if (h > 0)
+        sum += RecursiveVisit(h - 1, w);
+
+    if (h < height - 1)
+        sum += RecursiveVisit(h + 1, w);
+
+    if (w > 0)
+        sum += RecursiveVisit(h, w - 1);
+
+    if (w < width - 1)
+        sum += RecursiveVisit(h, w + 1);
+
+    return sum;
+}
