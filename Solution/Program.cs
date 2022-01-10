@@ -12,7 +12,7 @@
 var lines = data.Split('\n');
 var queue = new Stack<char>();
 
-var errors = 0;
+var scores = new List<long>();
 foreach (var l in lines)
 {
     queue.Clear();
@@ -28,28 +28,51 @@ foreach (var l in lines)
 
         if (c == ')' && last != '(')
         {
-            errors += 3;
+            queue.Clear();
             break;
         }
 
         if (c == ']' && last != '[')
         {
-            errors += 57;
+            queue.Clear();
             break;
         }
 
         if (c == '}' && last != '{')
         {
-            errors += 1197;
+            queue.Clear();
             break;
         }
 
         if (c == '>' && last != '<')
         {
-            errors += 25137;
+            queue.Clear();
             break;
         }
     }
+
+    long sum = 0;
+    while (queue.TryPop(out char c))
+    {
+        sum *= 5;
+
+        if (c == '(')
+            sum += 1;
+
+        if (c == '[')
+            sum += 2;
+
+        if (c == '{')
+            sum += 3;
+
+        if (c == '<')
+            sum += 4;
+    }
+
+    if (sum > 0)
+    {
+        scores.Add(sum);
+    }
 }
 
-Console.WriteLine(errors);
+Console.WriteLine(scores.OrderBy(i => i).ToList()[scores.Count / 2]);
