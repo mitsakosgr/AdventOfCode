@@ -1,64 +1,55 @@
-﻿var data = @"2199943210
-3987894921
-9856789892
-8767896789
-9899965678";
+﻿var data = @"[({(<(())[]>[[{[]{<()<>>
+[(()[<>])]({[<{<<[]>>(
+{([(<{}[<>[]}>{[]{[(<()>
+(((({<>}<{<{<>}{[]{[]{}
+[[<[([]))<([[{}[[()]]]
+[{[{({}]{}}([{[{{{}}([]
+{<[[]]>}<{[{[{[]{()[[[]
+[<(<(<(<{}))><([]([]()
+<{([([[(<>()){}]>(<<{{
+<{([{{}}[<[[[<>{}]]]>[]]";
 
 var lines = data.Split('\n');
+var queue = new Stack<char>();
 
-var height = lines.Length;
-var width = lines[0].Length;
-
-var area = new int[height, width];
-var visited = new int[height, width];
-
-for (int h = 0; h < height; ++h)
+var errors = 0;
+foreach (var l in lines)
 {
-    for (int w = 0; w < width; w++)
+    queue.Clear();
+    foreach (var c in l)
     {
-        area[h, w] = lines[h][w] - '0';
-        visited[h, w] = 0;
+        if ("([{<".Contains(c))
+        {
+            queue.Push(c);
+            continue;
+        }
+
+        char last = queue.Pop();
+
+        if (c == ')' && last != '(')
+        {
+            errors += 3;
+            break;
+        }
+
+        if (c == ']' && last != '[')
+        {
+            errors += 57;
+            break;
+        }
+
+        if (c == '}' && last != '{')
+        {
+            errors += 1197;
+            break;
+        }
+
+        if (c == '>' && last != '<')
+        {
+            errors += 25137;
+            break;
+        }
     }
 }
 
-var basins = new List<int>();
-
-for (int h = 0; h < height; h++)
-{
-    for (int w = 0; w < width; w++)
-    {
-        int basin = RecursiveVisit(h, w);
-        if (basin > 0)
-            basins.Add(basin);
-    }
-}
-
-var result = basins.OrderByDescending(i => i).Take(3).Aggregate((current, next) => current * next);
-Console.WriteLine(result);
-
-int RecursiveVisit(int h, int w)
-{
-    if (area[h, w] == 9)
-        return 0;
-    
-    if (visited[h, w] == 1)
-        return 0;
-    
-    visited[h, w] = 1;
-
-    int sum = 1;
-    
-    if (h > 0)
-        sum += RecursiveVisit(h - 1, w);
-
-    if (h < height - 1)
-        sum += RecursiveVisit(h + 1, w);
-
-    if (w > 0)
-        sum += RecursiveVisit(h, w - 1);
-
-    if (w < width - 1)
-        sum += RecursiveVisit(h, w + 1);
-
-    return sum;
-}
+Console.WriteLine(errors);
