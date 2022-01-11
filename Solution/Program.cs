@@ -55,7 +55,7 @@ for (int h = 0; h < height; h++)
 }
 
 int count = 0;
-for (int i = 0; i < 100; i++)
+for (int i = 0; i < 10000; i++)
 {
     for (int h = 0; h < height; h++)
     {
@@ -63,6 +63,24 @@ for (int i = 0; i < 100; i++)
         {
             count += grid[h, w].Step();
         }
+    }
+    bool all = true;
+    for (int h = 0; h < height && all; h++)
+    {
+        for (int w = 0; w < width; w++)
+        {
+            if (grid[h, w].Flashed == false)
+            {
+                all = false;
+                break;
+            }
+        }
+    }
+
+    if (all)
+    {
+        Console.WriteLine(i + 1);
+        return 0;
     }
 
     for (int h = 0; h < height; h++)
