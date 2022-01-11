@@ -1,154 +1,74 @@
-﻿var data = @"5483143223
-2745854711
-5264556173
-6141336146
-6357385478
-4167524645
-2176841721
-6882881134
-4846848554
-5283751526";
+﻿var data = @"dc-end
+HN-start
+start-kj
+dc-start
+dc-HN
+LN-dc
+HN-end
+kj-sa
+kj-HN
+kj-dc";
 
 var lines = data.Split('\n');
 
-var height = lines.Length;
-var width = lines[0].Length;
+var nodes = new Dictionary<string, Node>();
 
-var grid = new Octopus[height, width];
-
-for (int h = 0; h < height; h++)
+foreach (var l in lines)
 {
-    for (int w = 0; w < width; w++)
-    {
-        grid[h, w] = new Octopus(lines[h][w] - '0');
-    }
+    var t = l.Split('-');
+
+    if (!nodes.ContainsKey(t[0]))
+        nodes[t[0]] = new Node(t[0]);
+
+    if (!nodes.ContainsKey(t[1]))
+        nodes[t[1]] = new Node(t[1]);
+
+    nodes[t[0]].Neighbors.Add(nodes[t[1]]);
+    nodes[t[1]].Neighbors.Add(nodes[t[0]]);
 }
 
-for (int h = 0; h < height; h++)
-{
-    for (int w = 0; w < width; w++)
-    {
-        if (h > 0)
-            grid[h, w].AddAdjacent(grid[h - 1, w]);
-
-        if (w > 0)
-            grid[h, w].AddAdjacent(grid[h, w - 1]);
-
-        if (h > 0 && w > 0)
-            grid[h, w].AddAdjacent(grid[h - 1, w - 1]);
-
-        if (h < height - 1)
-            grid[h, w].AddAdjacent(grid[h + 1, w]);
-
-        if (w < width - 1)
-            grid[h, w].AddAdjacent(grid[h, w + 1]);
-
-        if (h < height - 1 && w < width - 1)
-            grid[h, w].AddAdjacent(grid[h + 1, w + 1]);
-
-        if (h > 0 && w < width - 1)
-            grid[h, w].AddAdjacent(grid[h - 1, w + 1]);
-
-        if (w > 0 && h < height - 1)
-            grid[h, w].AddAdjacent(grid[h + 1, w - 1]);
-    }
-}
+var start = nodes["start"];
+start.Visited = true;
 
 int count = 0;
-for (int i = 0; i < 10000; i++)
+foreach (var neighbor in start.Neighbors)
 {
-    for (int h = 0; h < height; h++)
-    {
-        for (int w = 0; w < width; w++)
-        {
-            count += grid[h, w].Step();
-        }
-    }
-    bool all = true;
-    for (int h = 0; h < height && all; h++)
-    {
-        for (int w = 0; w < width; w++)
-        {
-            if (grid[h, w].Flashed == false)
-            {
-                all = false;
-                break;
-            }
-        }
-    }
-
-    if (all)
-    {
-        Console.WriteLine(i + 1);
-        return 0;
-    }
-
-    for (int h = 0; h < height; h++)
-    {
-        for (int w = 0; w < width; w++)
-        {
-            // if (grid[h, w].Flashed)
-            // {
-            //     Console.BackgroundColor = ConsoleColor.White;
-            //     Console.ForegroundColor = ConsoleColor.Black;
-            // }
-            // else
-            //     Console.ResetColor();
-
-            // Console.Write(grid[h, w].Value);
-            grid[h, w].Reset();
-        }
-
-        // Console.WriteLine();
-    }
-    // Console.WriteLine();
+    VisitNode(neighbor);
 }
 
 Console.WriteLine(count);
-return 0;
 
-
-internal class Octopus
+void VisitNode(Node n)
 {
-    public int Value { get; private set; }
-    public bool Flashed { get; private set; }
-    public Octopus(int value)
+    if (n.Name == "end")
     {
-        Value = value;
+        ++count;
+        return;
     }
 
-    private List<Octopus> _adjacent = new();
+    if (n.Visited)
+        return;
 
-    public void AddAdjacent(Octopus octopus)
+    if (!n.Cave)
+        n.Visited = true;
+
+    foreach (var neighbor in n.Neighbors)
+        VisitNode(neighbor);
+
+    n.Visited = false;
+}
+
+class Node
+{
+    public Node(string name)
     {
-        _adjacent.Add(octopus);
+        Name = name;
+        if (name.ToUpper() == name)
+            Cave = true;
     }
 
-    public int Step()
-    {
-        if (Flashed)
-            return 0;
-
-        int count = 0;
-
-        Value += 1;
-
-        if (Value == 10)
-        {
-            count = 1;
-
-            Value = 0;
-            Flashed = true;
-
-            foreach (var o in _adjacent)
-                count += o.Step();
-        }
-
-        return count;
-    }
-
-    public void Reset()
-    {
-        Flashed = false;
-    }
+    public bool Visited { get; set; } = false;
+    public bool Cave { get; set; } = false;
+    public string Name { get; set; }
+    public List<Node> Neighbors { get; set; } = new();
 }
