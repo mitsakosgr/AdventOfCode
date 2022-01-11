@@ -1,78 +1,136 @@
-﻿var data = @"[({(<(())[]>[[{[]{<()<>>
-[(()[<>])]({[<{<<[]>>(
-{([(<{}[<>[]}>{[]{[(<()>
-(((({<>}<{<{<>}{[]{[]{}
-[[<[([]))<([[{}[[()]]]
-[{[{({}]{}}([{[{{{}}([]
-{<[[]]>}<{[{[{[]{()[[[]
-[<(<(<(<{}))><([]([]()
-<{([([[(<>()){}]>(<<{{
-<{([{{}}[<[[[<>{}]]]>[]]";
+﻿var data = @"5483143223
+2745854711
+5264556173
+6141336146
+6357385478
+4167524645
+2176841721
+6882881134
+4846848554
+5283751526";
 
 var lines = data.Split('\n');
-var queue = new Stack<char>();
 
-var scores = new List<long>();
-foreach (var l in lines)
+var height = lines.Length;
+var width = lines[0].Length;
+
+var grid = new Octopus[height, width];
+
+for (int h = 0; h < height; h++)
 {
-    queue.Clear();
-    foreach (var c in l)
+    for (int w = 0; w < width; w++)
     {
-        if ("([{<".Contains(c))
-        {
-            queue.Push(c);
-            continue;
-        }
-
-        char last = queue.Pop();
-
-        if (c == ')' && last != '(')
-        {
-            queue.Clear();
-            break;
-        }
-
-        if (c == ']' && last != '[')
-        {
-            queue.Clear();
-            break;
-        }
-
-        if (c == '}' && last != '{')
-        {
-            queue.Clear();
-            break;
-        }
-
-        if (c == '>' && last != '<')
-        {
-            queue.Clear();
-            break;
-        }
-    }
-
-    long sum = 0;
-    while (queue.TryPop(out char c))
-    {
-        sum *= 5;
-
-        if (c == '(')
-            sum += 1;
-
-        if (c == '[')
-            sum += 2;
-
-        if (c == '{')
-            sum += 3;
-
-        if (c == '<')
-            sum += 4;
-    }
-
-    if (sum > 0)
-    {
-        scores.Add(sum);
+        grid[h, w] = new Octopus(lines[h][w] - '0');
     }
 }
 
-Console.WriteLine(scores.OrderBy(i => i).ToList()[scores.Count / 2]);
+for (int h = 0; h < height; h++)
+{
+    for (int w = 0; w < width; w++)
+    {
+        if (h > 0)
+            grid[h, w].AddAdjacent(grid[h - 1, w]);
+
+        if (w > 0)
+            grid[h, w].AddAdjacent(grid[h, w - 1]);
+
+        if (h > 0 && w > 0)
+            grid[h, w].AddAdjacent(grid[h - 1, w - 1]);
+
+        if (h < height - 1)
+            grid[h, w].AddAdjacent(grid[h + 1, w]);
+
+        if (w < width - 1)
+            grid[h, w].AddAdjacent(grid[h, w + 1]);
+
+        if (h < height - 1 && w < width - 1)
+            grid[h, w].AddAdjacent(grid[h + 1, w + 1]);
+
+        if (h > 0 && w < width - 1)
+            grid[h, w].AddAdjacent(grid[h - 1, w + 1]);
+
+        if (w > 0 && h < height - 1)
+            grid[h, w].AddAdjacent(grid[h + 1, w - 1]);
+    }
+}
+
+int count = 0;
+for (int i = 0; i < 100; i++)
+{
+    for (int h = 0; h < height; h++)
+    {
+        for (int w = 0; w < width; w++)
+        {
+            count += grid[h, w].Step();
+        }
+    }
+
+    for (int h = 0; h < height; h++)
+    {
+        for (int w = 0; w < width; w++)
+        {
+            // if (grid[h, w].Flashed)
+            // {
+            //     Console.BackgroundColor = ConsoleColor.White;
+            //     Console.ForegroundColor = ConsoleColor.Black;
+            // }
+            // else
+            //     Console.ResetColor();
+
+            // Console.Write(grid[h, w].Value);
+            grid[h, w].Reset();
+        }
+
+        // Console.WriteLine();
+    }
+    // Console.WriteLine();
+}
+
+Console.WriteLine(count);
+return 0;
+
+
+internal class Octopus
+{
+    public int Value { get; private set; }
+    public bool Flashed { get; private set; }
+    public Octopus(int value)
+    {
+        Value = value;
+    }
+
+    private List<Octopus> _adjacent = new();
+
+    public void AddAdjacent(Octopus octopus)
+    {
+        _adjacent.Add(octopus);
+    }
+
+    public int Step()
+    {
+        if (Flashed)
+            return 0;
+
+        int count = 0;
+
+        Value += 1;
+
+        if (Value == 10)
+        {
+            count = 1;
+
+            Value = 0;
+            Flashed = true;
+
+            foreach (var o in _adjacent)
+                count += o.Step();
+        }
+
+        return count;
+    }
+
+    public void Reset()
+    {
+        Flashed = false;
+    }
+}
