@@ -1,13 +1,10 @@
-﻿var data = @"dc-end
-HN-start
-start-kj
-dc-start
-dc-HN
-LN-dc
-HN-end
-kj-sa
-kj-HN
-kj-dc";
+﻿var data = @"start-A
+start-b
+A-c
+A-b
+b-d
+A-end
+b-end";
 
 var lines = data.Split('\n');
 
@@ -30,35 +27,54 @@ foreach (var l in lines)
 var start = nodes["start"];
 start.Visited = true;
 
-int count = 0;
+var paths = new HashSet<string>();
 foreach (var neighbor in start.Neighbors)
 {
-    VisitNode(neighbor);
+    VisitNode(neighbor, false, new Queue<Node>());
 }
 
-Console.WriteLine(count);
+Console.WriteLine(paths.Count);
 
-void VisitNode(Node n)
+void VisitNode(Node n, bool visitedTwice, Queue<Node> visited)
 {
     if (n.Name == "end")
     {
-        ++count;
+        var path = string.Join(',', visited);
+        paths.Add(path);
         return;
     }
 
     if (n.Visited)
         return;
 
-    if (!n.Cave)
-        n.Visited = true;
+    visited.Enqueue(n);
 
-    foreach (var neighbor in n.Neighbors)
-        VisitNode(neighbor);
+    if (n.Cave)
+    {
+        foreach (var neighbor in n.Neighbors)
+            VisitNode(neighbor, visitedTwice, visited);
+    }
+    else
+    {
+        if (visitedTwice == false)
+        {
+            // visit neighbors but allow this to pass again
+            foreach (var neighbor in n.Neighbors)
+                VisitNode(neighbor, true, visited);
+        }
+
+        // visit as normal
+        n.Visited = true;
+        foreach (var neighbor in n.Neighbors)
+            VisitNode(neighbor, visitedTwice, visited);
+    }
+
+    visited.Dequeue();
 
     n.Visited = false;
 }
 
-class Node
+internal class Node
 {
     public Node(string name)
     {
@@ -67,8 +83,13 @@ class Node
             Cave = true;
     }
 
-    public bool Visited { get; set; } = false;
-    public bool Cave { get; set; } = false;
-    public string Name { get; set; }
-    public List<Node> Neighbors { get; set; } = new();
+    public bool Visited { get; set; }
+    public bool Cave { get; }
+    public string Name { get; }
+    public List<Node> Neighbors { get; } = new();
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }
