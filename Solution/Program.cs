@@ -1079,19 +1079,10 @@ foreach (var f in folds)
     }
 
     // printGrid();
-    break;
+    // break;
 }
 
-int count = 0;
-for (int y = 0; y < maxY; y++)
-{
-    for (int x = 0; x < maxX; x++)
-    {
-        count += grid[x, y];
-    }
-}
-
-Console.WriteLine(count);
+printGrid();
 
 void foldX(int pos)
 {
