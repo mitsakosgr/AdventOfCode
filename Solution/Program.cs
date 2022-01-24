@@ -21,7 +21,7 @@ var parts = data.Split("\n\n");
 
 var template = parts[0];
 
-var polymers = new Dictionary<string, int>();
+var polymers = new Dictionary<string, long>();
 
 var alters = new Dictionary<string, char>();
 
@@ -36,7 +36,7 @@ for (int i = 0; i < template.Length - 1; ++i)
 {
     polymers[template[i..(i + 2)]] += 1;
 }
-int steps = 10;
+int steps = 40;
 
 for (int i = 0; i < steps; ++i)
 {
@@ -51,7 +51,7 @@ for (int i = 0; i < steps; ++i)
     }
 }
 
-var counts = new Dictionary<char, int>();
+var counts = new Dictionary<char, long>();
 foreach (var (key, value) in polymers)
 {
     if (!counts.ContainsKey(key[0]))
