@@ -1,73 +1,74 @@
-﻿var data = @"NNCB
+﻿var data = @"1163751742
+1381373672
+2136511328
+3694931569
+7463417111
+1319128137
+1359912421
+3125421639
+1293138521
+2311944581";
 
-CH -> B
-HH -> N
-CB -> H
-NH -> C
-HB -> C
-HC -> B
-HN -> C
-NN -> C
-BH -> H
-NC -> B
-NB -> B
-BN -> B
-BB -> N
-BC -> B
-CC -> N
-CN -> C";
+var lines = data.Split('\n');
+int height = lines.Length;
+int width = lines[0].Length;
 
-var parts = data.Split("\n\n");
+var risks = new int[height, width];
 
-var template = parts[0];
 
-var polymers = new Dictionary<string, long>();
-
-var alters = new Dictionary<string, char>();
-
-parts[1].Split('\n').ToList().ForEach(i =>
+var weight = new int[height, width];
+for (int i = 0; i < height; ++i)
 {
-    var a = i.Split(" -> ");
-    polymers[a[0]] = 0;
-    alters[a[0]] = a[1][0];
-});
-
-for (int i = 0; i < template.Length - 1; ++i)
-{
-    polymers[template[i..(i + 2)]] += 1;
-}
-int steps = 40;
-
-for (int i = 0; i < steps; ++i)
-{
-    var d = polymers.Where(kv => kv.Value > 0).ToList();
-    foreach (var (key, value) in d)
+    for (int j = 0; j < width; j++)
     {
-        var add = alters[key];
-        
-        polymers[key] -= value;
-        polymers[key[0].ToString() + add] += value;
-        polymers[add + key[1].ToString()] += value;
+        risks[i, j] = lines[i][j] - '0';
+        if (i == 0 && j == 0)
+        {
+            weight[i, j] = 0;
+            continue;
+        }
+
+        weight[i, j] = int.MaxValue;
     }
 }
 
-var counts = new Dictionary<char, long>();
-foreach (var (key, value) in polymers)
+var queue = new Queue<(int, int)>();
+
+queue.Enqueue((0, 0));
+
+while (queue.TryDequeue(out (int, int) pos))
 {
-    if (!counts.ContainsKey(key[0]))
-        counts[key[0]] = 0;
+    // top
+    if (pos.Item1 > 0 &&
+        weight[pos.Item1 - 1, pos.Item2] > weight[pos.Item1, pos.Item2] + risks[pos.Item1 - 1, pos.Item2])
+    {
+        weight[pos.Item1 - 1, pos.Item2] = weight[pos.Item1, pos.Item2] + risks[pos.Item1 - 1, pos.Item2];
+        queue.Enqueue((pos.Item1 - 1, pos.Item2));
+    }
 
-    if (!counts.ContainsKey(key[1]))
-        counts[key[1]] = 0;
+    // bottom
+    if (pos.Item1 < height - 1 &&
+        weight[pos.Item1 + 1, pos.Item2] > weight[pos.Item1, pos.Item2] + risks[pos.Item1 + 1, pos.Item2])
+    {
+        weight[pos.Item1 + 1, pos.Item2] = weight[pos.Item1, pos.Item2] + risks[pos.Item1 + 1, pos.Item2];
+        queue.Enqueue((pos.Item1 + 1, pos.Item2));
+    }
 
-    counts[key[0]] += value;
-    counts[key[1]] += value;
+    // left
+    if (pos.Item2 > 0 &&
+        weight[pos.Item1, pos.Item2 - 1] > weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 - 1])
+    {
+        weight[pos.Item1, pos.Item2 - 1] = weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 - 1];
+        queue.Enqueue((pos.Item1, pos.Item2 - 1));
+    }
+
+    // right
+    if (pos.Item2 < width - 1 &&
+        weight[pos.Item1, pos.Item2 + 1] > weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 + 1])
+    {
+        weight[pos.Item1, pos.Item2 + 1] = weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 + 1];
+        queue.Enqueue((pos.Item1, pos.Item2 + 1));
+    }
 }
 
-var max = counts.MaxBy(i => i.Value);
-var min = counts.MinBy(i => i.Value);
-
-// fix rounding error
-var res = (max.Value + 1) / 2 - (min.Value + 1) / 2;
-
-Console.WriteLine(res);
+Console.WriteLine(weight[height - 1, width - 1]);
