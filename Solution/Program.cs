@@ -13,24 +13,38 @@ var lines = data.Split('\n');
 int height = lines.Length;
 int width = lines[0].Length;
 
-var risks = new int[height, width];
-
-
-var weight = new int[height, width];
-for (int i = 0; i < height; ++i)
+var risks = new int[height * 5, width * 5];
+var weight = new int[height * 5, width * 5];
+for (int i = 0; i < 5; i++)
 {
-    for (int j = 0; j < width; j++)
+    for (int j = 0; j < 5; j++)
     {
-        risks[i, j] = lines[i][j] - '0';
-        if (i == 0 && j == 0)
+        for (int x = 0; x < height; x++)
         {
-            weight[i, j] = 0;
-            continue;
-        }
+            for (int y = 0; y < width; y++)
+            {
+                var posX = x + i * height;
+                var posY = y + j * width;
 
-        weight[i, j] = int.MaxValue;
+                if (posX == 0 && posY == 0)
+                {
+                    weight[posX, posY] = 0;
+                    risks[posX, posY] = lines[0][0] - '0';
+                }
+                else
+                {
+                    weight[posX, posY] = int.MaxValue;
+                    risks[posX, posY] = (lines[x][y] - '0' + i + j);
+                    if (risks[posX, posY] >= 10)
+                        risks[posX, posY] -= 9;
+                }
+            }
+        }
     }
 }
+
+width *= 5;
+height *= 5;
 
 var queue = new Queue<(int, int)>();
 
