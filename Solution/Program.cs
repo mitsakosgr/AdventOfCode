@@ -68,6 +68,8 @@ foreach (var x in acceptableX)
     }
 }
 
+Console.WriteLine(acceptable.Count);
+
 int max = acceptable.MaxBy(i => i.Item2).Item2;
 
 int count = 0;
