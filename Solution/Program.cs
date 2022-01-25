@@ -1,18 +1,17 @@
-﻿var data = @"A0016C880162017C3686B18A3D4780";
+﻿var data = @"9C0141080250320F1802104A08";
 
 var binary = String.Join("", data.Select(x => Convert.ToString(Convert.ToInt32(x+"", 16), 2).PadLeft(4,'0')));
 
-var sumOfVersions = 0;
-ParsePacket(binary);
-Console.WriteLine(sumOfVersions);
+var value = ParsePacket(binary, out int _);
+Console.WriteLine(value);
 
-int ParsePacket(string binary)
+long ParsePacket(string binary, out int pos)
 {
-    int pos = 0;
+    var ret = 0L;
+    pos = 0;
     
     var version = GetVersion(binary);
     pos += 3;
-    sumOfVersions += version;
     
     var packetId = GetPacketId(binary);
     pos += 3;
@@ -37,10 +36,11 @@ int ParsePacket(string binary)
             final += s.Substring(1);
         }
 
-        var finalNumber = Convert.ToInt64(final, 2);
+        ret = Convert.ToInt64(final, 2);
     }
     else // operator type
     {
+        var packets = new List<long>();
         if (binary[pos++] == '0')
         {
             var length = Convert.ToInt32(binary.Substring(pos, 15), 2);
@@ -49,7 +49,7 @@ int ParsePacket(string binary)
             int sum = 0;
             while (sum < length)
             {
-                var l = ParsePacket(binary.Substring(pos));
+                packets.Add(ParsePacket(binary.Substring(pos), out int l));
                 sum += l;
                 pos += l;
             }
@@ -61,12 +61,25 @@ int ParsePacket(string binary)
 
             for (int i = 0; i < numberOfSub; ++i)
             {
-                pos += ParsePacket(binary.Substring(pos));
+                packets.Add(ParsePacket(binary.Substring(pos), out int l));
+                pos += l;
             }
         }
+
+        ret = packetId switch
+        {
+            0 => packets.Sum(),
+            1 => packets.Aggregate(1L, (acc, val) => acc * val),
+            2 => packets.Min(),
+            3 => packets.Max(),
+            5 => packets[0] > packets[1] ? 1 : 0,
+            6 => packets[0] < packets[1] ? 1 : 0,
+            7 => packets[0] == packets[1] ? 1 : 0,
+            _ => ret
+        };
     }
-    
-    return pos;
+
+    return ret;
 }
 
 int GetVersion(string data)
