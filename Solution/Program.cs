@@ -1,88 +1,81 @@
-﻿var data = @"1163751742
-1381373672
-2136511328
-3694931569
-7463417111
-1319128137
-1359912421
-3125421639
-1293138521
-2311944581";
+﻿var data = @"A0016C880162017C3686B18A3D4780";
 
-var lines = data.Split('\n');
-int height = lines.Length;
-int width = lines[0].Length;
+var binary = String.Join("", data.Select(x => Convert.ToString(Convert.ToInt32(x+"", 16), 2).PadLeft(4,'0')));
 
-var risks = new int[height * 5, width * 5];
-var weight = new int[height * 5, width * 5];
-for (int i = 0; i < 5; i++)
+var sumOfVersions = 0;
+ParsePacket(binary);
+Console.WriteLine(sumOfVersions);
+
+int ParsePacket(string binary)
 {
-    for (int j = 0; j < 5; j++)
-    {
-        for (int x = 0; x < height; x++)
-        {
-            for (int y = 0; y < width; y++)
-            {
-                var posX = x + i * height;
-                var posY = y + j * width;
+    int pos = 0;
+    
+    var version = GetVersion(binary);
+    pos += 3;
+    sumOfVersions += version;
+    
+    var packetId = GetPacketId(binary);
+    pos += 3;
 
-                if (posX == 0 && posY == 0)
-                {
-                    weight[posX, posY] = 0;
-                    risks[posX, posY] = lines[0][0] - '0';
-                }
-                else
-                {
-                    weight[posX, posY] = int.MaxValue;
-                    risks[posX, posY] = (lines[x][y] - '0' + i + j);
-                    if (risks[posX, posY] >= 10)
-                        risks[posX, posY] -= 9;
-                }
+    // literal packet type
+    if (packetId == 4)
+    {
+        Queue<string> numberQueue = new Queue<string>();
+        
+        while (true)
+        {
+            var num = binary.Substring(pos, 5);
+            numberQueue.Enqueue(num);
+            pos += 5;
+            if (num[0] == '0')
+                break;
+        }
+
+        string final = "";
+        while (numberQueue.TryDequeue(out string s))
+        {
+            final += s.Substring(1);
+        }
+
+        var finalNumber = Convert.ToInt64(final, 2);
+    }
+    else // operator type
+    {
+        if (binary[pos++] == '0')
+        {
+            var length = Convert.ToInt32(binary.Substring(pos, 15), 2);
+            pos += 15;
+
+            int sum = 0;
+            while (sum < length)
+            {
+                var l = ParsePacket(binary.Substring(pos));
+                sum += l;
+                pos += l;
+            }
+        }
+        else
+        {
+            var numberOfSub = Convert.ToInt32(binary.Substring(pos, 11), 2);
+            pos += 11;
+
+            for (int i = 0; i < numberOfSub; ++i)
+            {
+                pos += ParsePacket(binary.Substring(pos));
             }
         }
     }
+    
+    return pos;
 }
 
-width *= 5;
-height *= 5;
-
-var queue = new Queue<(int, int)>();
-
-queue.Enqueue((0, 0));
-
-while (queue.TryDequeue(out (int, int) pos))
+int GetVersion(string data)
 {
-    // top
-    if (pos.Item1 > 0 &&
-        weight[pos.Item1 - 1, pos.Item2] > weight[pos.Item1, pos.Item2] + risks[pos.Item1 - 1, pos.Item2])
-    {
-        weight[pos.Item1 - 1, pos.Item2] = weight[pos.Item1, pos.Item2] + risks[pos.Item1 - 1, pos.Item2];
-        queue.Enqueue((pos.Item1 - 1, pos.Item2));
-    }
-
-    // bottom
-    if (pos.Item1 < height - 1 &&
-        weight[pos.Item1 + 1, pos.Item2] > weight[pos.Item1, pos.Item2] + risks[pos.Item1 + 1, pos.Item2])
-    {
-        weight[pos.Item1 + 1, pos.Item2] = weight[pos.Item1, pos.Item2] + risks[pos.Item1 + 1, pos.Item2];
-        queue.Enqueue((pos.Item1 + 1, pos.Item2));
-    }
-
-    // left
-    if (pos.Item2 > 0 &&
-        weight[pos.Item1, pos.Item2 - 1] > weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 - 1])
-    {
-        weight[pos.Item1, pos.Item2 - 1] = weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 - 1];
-        queue.Enqueue((pos.Item1, pos.Item2 - 1));
-    }
-
-    // right
-    if (pos.Item2 < width - 1 &&
-        weight[pos.Item1, pos.Item2 + 1] > weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 + 1])
-    {
-        weight[pos.Item1, pos.Item2 + 1] = weight[pos.Item1, pos.Item2] + risks[pos.Item1, pos.Item2 + 1];
-        queue.Enqueue((pos.Item1, pos.Item2 + 1));
-    }
+    return Convert.ToInt32(data.Substring(0, 3), 2);
 }
 
-Console.WriteLine(weight[height - 1, width - 1]);
+int GetPacketId(string data)
+{
+    return Convert.ToInt32(data.Substring(3, 3), 2);
+}
+
