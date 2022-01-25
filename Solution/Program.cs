@@ -1,94 +1,77 @@
-﻿var data = @"9C0141080250320F1802104A08";
+var data = @"target area: x=20..30, y=-10..-5";
 
-var binary = String.Join("", data.Select(x => Convert.ToString(Convert.ToInt32(x+"", 16), 2).PadLeft(4,'0')));
+data = data.Substring(15);
+var parts = data.Split(", ");
+var xRange = parts[0].Split("..");
+var fromX = Convert.ToInt32(xRange[0]);
+var toX = Convert.ToInt32(xRange[1]);
 
-var value = ParsePacket(binary, out int _);
-Console.WriteLine(value);
+var yRange = parts[1].Substring(2).Split("..");
+var toY = Convert.ToInt32(yRange[0]);
+var fromY = Convert.ToInt32(yRange[1]);
 
-long ParsePacket(string binary, out int pos)
+// available initial speeds is bound by toX (cant be greater) and drag
+var acceptableX = new List<int>();
+// find initial x speed 
+for (int i = 1; i <= toX; i++)
 {
-    var ret = 0L;
-    pos = 0;
-    
-    var version = GetVersion(binary);
-    pos += 3;
-    
-    var packetId = GetPacketId(binary);
-    pos += 3;
+    int pos = 0;
 
-    // literal packet type
-    if (packetId == 4)
+    for (int velocity = i; velocity > 0; velocity--)
     {
-        Queue<string> numberQueue = new Queue<string>();
-        
-        while (true)
+        pos += velocity;
+
+        // we went outside toX
+        if (pos > toX)
+            break;
+
+        if (pos >= fromX && pos <= toX)
         {
-            var num = binary.Substring(pos, 5);
-            numberQueue.Enqueue(num);
-            pos += 5;
-            if (num[0] == '0')
+            acceptableX.Add(i);
+            break;
+        }
+    }
+}
+
+var acceptable = new List<(int, int)>();
+foreach (var x in acceptableX)
+{
+    // toY negative
+    for (int i = -toY; i >= toY; --i)
+    {
+        int velocity = x;
+        int height = i;
+
+        int posX = 0;
+        int posY = 0;
+
+        for (; height >= toY; velocity--, height--)
+        {
+            if (velocity < 0)
+                velocity = 0;
+
+            posX += velocity;
+            posY += height;
+
+            if (posY < toY)
                 break;
-        }
 
-        string final = "";
-        while (numberQueue.TryDequeue(out string s))
-        {
-            final += s.Substring(1);
-        }
+            if (posX > toX)
+                break;
 
-        ret = Convert.ToInt64(final, 2);
-    }
-    else // operator type
-    {
-        var packets = new List<long>();
-        if (binary[pos++] == '0')
-        {
-            var length = Convert.ToInt32(binary.Substring(pos, 15), 2);
-            pos += 15;
-
-            int sum = 0;
-            while (sum < length)
+            if (posX >= fromX && posX <= toX && posY >= toY && posY <= fromY)
             {
-                packets.Add(ParsePacket(binary.Substring(pos), out int l));
-                sum += l;
-                pos += l;
+                acceptable.Add((x, i));
+                break;
             }
         }
-        else
-        {
-            var numberOfSub = Convert.ToInt32(binary.Substring(pos, 11), 2);
-            pos += 11;
-
-            for (int i = 0; i < numberOfSub; ++i)
-            {
-                packets.Add(ParsePacket(binary.Substring(pos), out int l));
-                pos += l;
-            }
-        }
-
-        ret = packetId switch
-        {
-            0 => packets.Sum(),
-            1 => packets.Aggregate(1L, (acc, val) => acc * val),
-            2 => packets.Min(),
-            3 => packets.Max(),
-            5 => packets[0] > packets[1] ? 1 : 0,
-            6 => packets[0] < packets[1] ? 1 : 0,
-            7 => packets[0] == packets[1] ? 1 : 0,
-            _ => ret
-        };
     }
-
-    return ret;
 }
 
-int GetVersion(string data)
-{
-    return Convert.ToInt32(data.Substring(0, 3), 2);
-}
+int max = acceptable.MaxBy(i => i.Item2).Item2;
 
-int GetPacketId(string data)
-{
-    return Convert.ToInt32(data.Substring(3, 3), 2);
-}
+int count = 0;
+for (int i = 1; i <= max; ++i)
+    count += i;
 
+Console.WriteLine(count);
