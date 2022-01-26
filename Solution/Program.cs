@@ -11,53 +11,62 @@ var data = @"[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 
 var lines = data.Split('\n');
 
-TreeNode root = ParseLine(lines[0]);
-
-for (int i = 1; i < lines.Length; ++i)
+var max = Int64.MinValue;
+for (int i = 0; i < lines.Length; ++i)
 {
-    var newRoot = new TreeNode(null);
-
-    newRoot.Left = root;
-    newRoot.Right = ParseLine(lines[i]);
-
-    root = newRoot;
-    root.Left.Parent = root;
-    root.Right.Parent = root;
-    
-    // Console.Write("after addition: ");
-    // PrintTree(root);
-    // Console.WriteLine();
-
-    while (true)
+    for (int j = 0; j < lines.Length; j++)
     {
-        bool exploded = false;
-        bool splited = false;
+        if (i == j)
+            continue;
+
+        var root = new TreeNode(null)
+        {
+            Left = ParseLine(lines[i]),
+            Right = ParseLine(lines[j])
+        };
         
-        while (PerformExplode(root))
-        {
-            exploded = true;
-            // Console.Write("after explode: ");
-            // PrintTree(root);
-            // Console.WriteLine();
-        }
+        root.Left.Parent = root;
+        root.Right.Parent = root;
+        
+        // Console.Write("after addition: ");
+        // PrintTree(root);
+        // Console.WriteLine();
 
-        splited = PerformSplit(root);
-        if (splited)
+        while (true)
         {
-            // Console.Write("after split: ");
-            // PrintTree(root);
-            // Console.WriteLine();
-        }
+            bool exploded = false;
+            bool splited = false;
 
-        if (!(exploded || splited))
-            break;
+            while (PerformExplode(root))
+            {
+                exploded = true;
+                // Console.Write("after explode: ");
+                // PrintTree(root);
+                // Console.WriteLine();
+            }
+
+            splited = PerformSplit(root);
+            if (splited)
+            {
+                // Console.Write("after split: ");
+                // PrintTree(root);
+                // Console.WriteLine();
+            }
+
+            if (!(exploded || splited))
+                break;
+        }
+        
+        // PrintTree(root);
+        // Console.WriteLine();
+
+        var result = CalculateResult(root);
+        if (result > max)
+            max = result;
     }
 }
 
-PrintTree(root);
-Console.WriteLine();
-
-Console.WriteLine(CalculateResult(root));
+Console.WriteLine(max);
 
 return 0;
 
