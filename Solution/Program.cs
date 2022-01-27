@@ -159,6 +159,8 @@ finalProbes.AddRange(probesList[0]);
 
 probesList.RemoveAt(0);
 
+var scannersList = new List<(int, int, int)> {(0, 0, 0)};
+
 var pos = 0;
 while (probesList.Count > 0)
 {
@@ -191,6 +193,8 @@ while (probesList.Count > 0)
                     Console.WriteLine(matches);
                     finalProbes.AddRange(
                         offset.Where(p => finalProbes.All(f => f.X != p.X || f.Y != p.Y || f.Z != p.Z)));
+
+                    scannersList.Add(sensorPos);
                     probesList.RemoveAt(pos);
                     matched = true;
                     break;
@@ -213,6 +217,25 @@ while (probesList.Count > 0)
 
 Console.WriteLine(finalProbes.Count);
 
+int maxDistance = 0;
+for (int i = 0; i < scannersList.Count; ++i)
+{
+    for (int j = 0; j < scannersList.Count; ++j)
+    {
+        var distance = Math.Abs(scannersList[i].Item1 - scannersList[j].Item1)
+                       + Math.Abs(scannersList[i].Item2 - scannersList[j].Item2)
+                       + Math.Abs(scannersList[i].Item3 - scannersList[j].Item3);
+
+        if (distance > maxDistance)
+            maxDistance = distance;
+    }
+}
+
+Console.WriteLine(maxDistance);
+
+return 0;
+
+
 List<Probe> Transform(List<Probe> list, int transformation)
 {
     return list.Select(i => i.Transform(transformation)).ToList();
@@ -222,9 +245,6 @@ List<Probe> Offset(IEnumerable<Probe> list, (int, int, int) offset)
 {
     return list.Select(i => i.Offset(offset)).ToList();
 }
-
-
-return 0;
 
 struct Probe
 {
