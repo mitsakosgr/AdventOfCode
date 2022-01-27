@@ -24,7 +24,7 @@ for (int i = 0; i < xx.Length; ++i)
 }
 
 var newImageDimensions = 0;
-for (var r = 0; r < 2; ++r)
+for (var r = 0; r < 50; ++r)
 {
     newImageDimensions = imageDimensions + 2;
     var newImage = new int[newImageDimensions, newImageDimensions];
