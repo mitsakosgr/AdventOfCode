@@ -1,81 +1,86 @@
-var players = new [] {4 - 1, 8 - 1}; // 9, 3
+var data = @"on x=-20..26,y=-36..17,z=-47..7
+on x=-20..33,y=-21..23,z=-26..28
+on x=-22..28,y=-29..23,z=-38..16
+on x=-46..7,y=-6..46,z=-50..-1
+on x=-49..1,y=-3..46,z=-24..28
+on x=2..47,y=-22..22,z=-23..27
+on x=-27..23,y=-28..26,z=-21..29
+on x=-39..5,y=-6..47,z=-3..44
+on x=-30..21,y=-8..43,z=-13..34
+on x=-22..26,y=-27..20,z=-29..19
+off x=-48..-32,y=26..41,z=-47..-37
+on x=-12..35,y=6..50,z=-50..-2
+off x=-48..-32,y=-32..-16,z=-15..-5
+on x=-18..26,y=-33..15,z=-7..46
+off x=-40..-22,y=-38..-28,z=23..41
+on x=-16..35,y=-41..10,z=-47..6
+off x=-32..-23,y=11..30,z=-14..3
+on x=-49..-5,y=-3..45,z=-29..18
+off x=18..30,y=-20..-8,z=-3..13
+on x=-41..9,y=-7..43,z=-33..15
+on x=-54112..-39298,y=-85059..-49293,z=-27449..7877
+on x=967..23432,y=45373..81175,z=27513..53682";
 
-// [playerTurn][pos1][pos2][s1][s2][w1,w2]
-var memoization = new long[2][][][][][];
-for (int m = 0; m < 2; ++m)
+var cubes = new Dictionary<int, Dictionary<int, Dictionary<int, bool>>>();
+
+var ranges = data.Split('\n');
+
+foreach (var rangeString in ranges)
 {
-    memoization[m] = new long[10][][][][];
-    for (int i = 0; i < 10; ++i)
+    var isOn = false;
+    var dimensionsPart = rangeString;
+
+    if (rangeString[1] == 'n')
     {
-        memoization[m][i] = new long[10][][][];
-        for (int j = 0; j < 10; ++j)
+        isOn = true;
+        dimensionsPart = dimensionsPart[5..];
+    }
+    else
+    {
+        dimensionsPart = dimensionsPart[6..];
+    }
+
+    var dimensions = dimensionsPart.Split(',');
+
+    var dimensionX = dimensions[0].Split("..");
+    var startX = int.Parse(dimensionX[0]);
+    var endX = int.Parse(dimensionX[1]);
+
+    var dimensionY = dimensions[1][2..].Split("..");
+    var startY = int.Parse(dimensionY[0]);
+    var endY = int.Parse(dimensionY[1]);
+
+    var dimensionZ = dimensions[2][2..].Split("..");
+    var startZ = int.Parse(dimensionZ[0]);
+    var endZ = int.Parse(dimensionZ[1]);
+
+    for (var x = startX; x <= endX; ++x)
+    {
+        if (x is < -50 or > 50) continue;
+
+        if (!cubes.ContainsKey(x))
+            cubes[x] = new Dictionary<int, Dictionary<int, bool>>();
+
+        for (var y = startY; y <= endY; y++)
         {
-            memoization[m][i][j] = new long[21][][];
-            for (int k = 0; k < 21; ++k)
+            if (y is < -50 or > 50) continue;
+
+            if (!cubes[x].ContainsKey(y))
+                cubes[x][y] = new Dictionary<int, bool>();
+
+            for (var z = startZ; z <= endZ; z++)
             {
-                memoization[m][i][j][k] = new long[21][];
-                for (int l = 0; l < 21; ++l)
-                {
-                    memoization[m][i][j][k][l] = new long[2] {-1, -1};
-                }
+                if (z is < -50 or > 50) continue;
+
+                cubes[x][y][z] = isOn;
             }
         }
     }
 }
 
-var wins = Play(0, new [] {0, 0}, players);
+var count = cubes
+    .Values
+    .SelectMany(i => i.Values.SelectMany(j => j.Values))
+    .Count(i => i);
 
-if(wins[0] > wins[1])
-    Console.WriteLine($"Player 1 wins at {wins[0]} universes over {wins[1]}");
-else
-    Console.WriteLine($"Player 2 wins at {wins[1]} universes over {wins[0]}");
-
-return 0;
-
-long[] Play(int player, int[] scores, int[] positions)
-{
-    var wins = new long[2];
-
-    // already known result for current position
-    if (memoization[player][positions[0]][positions[1]][scores[0]][scores[1]][0] != -1)
-    {
-        wins[0] = memoization[player][positions[0]][positions[1]][scores[0]][scores[1]][0];
-        wins[1] = memoization[player][positions[0]][positions[1]][scores[0]][scores[1]][1];
-        return wins;
-    }
-
-    var initialPosition = positions[player];
-    var initialScore = scores[player];
-
-    for (int i = 1; i <= 3; ++i)
-    {
-        for (int j = 1; j <= 3; ++j)
-        {
-            for (int k = 1; k <= 3; ++k)
-            {
-                positions[player] = (positions[player] + i + j + k) % 10;
-                scores[player] += positions[player] + 1;
-
-                if (scores[player] >= 21)
-                {
-                    wins[player] += 1;
-                }
-                else
-                {
-                    var w = Play((player + 1) % 2, scores, positions);
-                    wins[0] += w[0];
-                    wins[1] += w[1];
-                }
-
-                positions[player] = initialPosition;
-                scores[player] = initialScore;
-            }
-        }
-    }
-
-
-    memoization[player][positions[0]][positions[1]][scores[0]][scores[1]][0] = wins[0];
-    memoization[player][positions[0]][positions[1]][scores[0]][scores[1]][1] = wins[1];
-
-    return wins;
-}
+Console.WriteLine(count);
