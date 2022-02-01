@@ -11,13 +11,23 @@ var nodes = new List<Node>()
     new Node(), // 6
     new Node('A'), // 7 
     new Node('A'), // 8
-    new Node('B'), // 9
-    new Node('B'), // 10
-    new Node('C'), // 11
-    new Node('C'), // 12
-    new Node('D'), // 13
-    new Node('D'), // 14
+    new Node('A'), // 9
+    new Node('A'), // 10
+    new Node('B'), // 11
+    new Node('B'), // 12
+    new Node('B'), // 13
+    new Node('B'), // 14
+    new Node('C'), // 15
+    new Node('C'), // 16
+    new Node('C'), // 17
+    new Node('C'), // 18
+    new Node('D'), // 19
+    new Node('D'), // 20
+    new Node('D'), // 21
+    new Node('D'), // 22
 };
+
+Amphipod.Bases = new Node[4] { nodes[10], nodes[14], nodes[18], nodes[22] };
 
 nodes[0].AddNeighbor(nodes[1], 1);
 nodes[1].AddNeighbor(nodes[2], 2);
@@ -29,30 +39,66 @@ nodes[5].AddNeighbor(nodes[6], 1);
 nodes[7].AddNeighbor(nodes[1], 2);
 nodes[7].AddNeighbor(nodes[2], 2);
 nodes[7].AddNeighbor(nodes[8], 1);
-
-nodes[9].AddNeighbor(nodes[2], 2);
-nodes[9].AddNeighbor(nodes[3], 2);
+nodes[8].AddNeighbor(nodes[9], 1);
 nodes[9].AddNeighbor(nodes[10], 1);
 
+nodes[11].AddNeighbor(nodes[2], 2);
 nodes[11].AddNeighbor(nodes[3], 2);
-nodes[11].AddNeighbor(nodes[4], 2);
 nodes[11].AddNeighbor(nodes[12], 1);
-
-nodes[13].AddNeighbor(nodes[4], 2);
-nodes[13].AddNeighbor(nodes[5], 2);
+nodes[12].AddNeighbor(nodes[13], 1);
 nodes[13].AddNeighbor(nodes[14], 1);
+
+nodes[15].AddNeighbor(nodes[3], 2);
+nodes[15].AddNeighbor(nodes[4], 2);
+nodes[15].AddNeighbor(nodes[16], 1);
+nodes[16].AddNeighbor(nodes[17], 1);
+nodes[17].AddNeighbor(nodes[18], 1);
+
+nodes[19].AddNeighbor(nodes[4], 2);
+nodes[19].AddNeighbor(nodes[5], 2);
+nodes[19].AddNeighbor(nodes[20], 1);
+nodes[20].AddNeighbor(nodes[21], 1);
+nodes[21].AddNeighbor(nodes[22], 1);
+
+// 7 - B
+// 8 - D
+// 9 - D
+// 10 - A
+
+// 11 - C
+// 12 - C
+// 13 - B
+// 14 - D
+
+// 15 - B
+// 16 - B
+// 17 - A
+// 18 - C
+
+// 19 - D
+// 20 - A
+// 21 - C
+// 22 - A
 
 
 var amphipods = new List<Amphipod>
 {
-    new Amphipod('A', nodes[13]),
-    new Amphipod('A', nodes[14]),
     new Amphipod('B', nodes[7]),
-    new Amphipod('B', nodes[12]),
-    new Amphipod('C', nodes[8]),
-    new Amphipod('C', nodes[11]),
+    new Amphipod('D', nodes[8]),
     new Amphipod('D', nodes[9]),
-    new Amphipod('D', nodes[10]),
+    new Amphipod('C', nodes[10]),
+    new Amphipod('D', nodes[11]),
+    new Amphipod('C', nodes[12]),
+    new Amphipod('B', nodes[13]),
+    new Amphipod('D', nodes[14]),
+    new Amphipod('C', nodes[15]),
+    new Amphipod('B', nodes[16]),
+    new Amphipod('A', nodes[17]),
+    new Amphipod('B', nodes[18]),
+    new Amphipod('A', nodes[19]),
+    new Amphipod('A', nodes[20]),
+    new Amphipod('C', nodes[21]),
+    new Amphipod('A', nodes[22]),
 };
 
 PrintMaze();
@@ -104,7 +150,7 @@ void Move(List<Amphipod> currentAmphipods, long currentScore = 0)
                     if (currentScore < minScore)
                     {
                         minScore = currentScore;
-                        // Console.WriteLine($"Found new best solution with score {currentScore}");
+                        Console.WriteLine($"Found new best solution with score {currentScore}");
                     }
                 }
                 else
@@ -144,21 +190,41 @@ void PrintMaze()
     Console.Write("###");
     Console.Write(nodes[7].Contains?.Type ?? '.');
     Console.Write('#');
-    Console.Write(nodes[9].Contains?.Type ?? '.');
-    Console.Write('#');
     Console.Write(nodes[11].Contains?.Type ?? '.');
     Console.Write('#');
-    Console.Write(nodes[13].Contains?.Type ?? '.');
+    Console.Write(nodes[15].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[19].Contains?.Type ?? '.');
     Console.WriteLine("###");
 
     Console.Write("  #");
     Console.Write(nodes[8].Contains?.Type ?? '.');
     Console.Write('#');
-    Console.Write(nodes[10].Contains?.Type ?? '.');
-    Console.Write('#');
     Console.Write(nodes[12].Contains?.Type ?? '.');
     Console.Write('#');
+    Console.Write(nodes[16].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[20].Contains?.Type ?? '.');
+    Console.WriteLine("#  ");
+
+    Console.Write("  #");
+    Console.Write(nodes[9].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[13].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[17].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[21].Contains?.Type ?? '.');
+    Console.WriteLine("#  ");
+
+    Console.Write("  #");
+    Console.Write(nodes[10].Contains?.Type ?? '.');
+    Console.Write('#');
     Console.Write(nodes[14].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[18].Contains?.Type ?? '.');
+    Console.Write('#');
+    Console.Write(nodes[22].Contains?.Type ?? '.');
     Console.WriteLine("#  ");
 
     Console.WriteLine("  #########  ");
@@ -172,21 +238,15 @@ bool TryGetMovements(Amphipod a, out List<(Node, int)> movements)
     if (a.InPlace)
         return false;
 
-    var current = a.Position;
-
     // try to find a route home
     var targetNodes = nodes.Where(i => i.HomeFor == a.Type && i.Contains == null).ToList();
     Node target = null;
 
-    if (targetNodes.Count == 2)
+    if (targetNodes.Count > 0)
     {
-        target = targetNodes.Single(i => i.Neighbors.Count == 1);
-    }
-    else if (targetNodes.Count == 1) // got top home
-    {
-        var other = targetNodes[0].Neighbors.Single(i => i.Key.HomeFor != null).Key;
-        if (other.Contains?.InPlace == true)
-            target = targetNodes[0];
+        var inPlace = amphipods.Count(i => i.Type == a.Type && i.InPlace);
+        if (targetNodes.Count + inPlace == 4)
+            target = targetNodes.Last();
     }
 
     if (target != null) // target found
@@ -217,9 +277,16 @@ bool TryGetMovements(Amphipod a, out List<(Node, int)> movements)
 
 internal class Amphipod
 {
+    public static Node[] Bases { get; set; } = { };
+
+    private static int _counter = 0;
+
+    public int Id { get; }
+
     private Node _position;
     public Amphipod(char type, Node position)
     {
+        Id = _counter++;
         Type = type;
         Position = position;
     }
@@ -258,32 +325,19 @@ internal class Amphipod
             if (_position.HomeFor == null || _position.HomeFor != Type)
                 return;
 
-            switch (_position.Neighbors.Count)
+            if (_position.HomeFor == Type)
             {
-                case 1:
+                var b = Bases[Type - 'A'];
+                var visited = new List<Node>();
+                while (b.Contains?.Type == b.HomeFor)
                 {
-                    InPlace = true;
-                    // Console.WriteLine($"Amphipod {Type} is home...");
+                    b.Contains.InPlace = true;
+                    visited.Add(b);
 
-                    var other = _position.Neighbors.First().Key;
-                    if (other.Contains == null || other.Contains.Type != Type)
-                        return;
-
-                    other.Contains.InPlace = true;
-                    // Console.WriteLine($"Amphipods {Type} are both home...");
-                    break;
-                }
-                case 3:
-                {
-                    var other = _position.Neighbors.Single(i => i.Key.HomeFor == Type).Key;
-                    if (other.Contains == null || other.Contains.Type != Type)
-                        return;
-
-                    other.Contains.InPlace = true;
-                    InPlace = true;
-
-                    // Console.WriteLine($"Amphipods {Type} are both home...");
-                    break;
+                    // Console.WriteLine($"Amphipod {Type} is in place");
+                    b = b.Neighbors.Where(i => i.Key.HomeFor == Type && !visited.Any(j => j == i.Key)).FirstOrDefault().Key;
+                    if (b == null)
+                        break;
                 }
             }
         }
@@ -293,9 +347,12 @@ internal class Amphipod
 
 internal class Node
 {
+    private static int _counter = 0;
+    public int Id { get; }
     public Node(char? homeFor = null)
     {
         HomeFor = homeFor;
+        Id = _counter++;
     }
 
     public char? HomeFor { get; }
