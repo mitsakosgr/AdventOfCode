@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 var input = @"addx 15
@@ -151,25 +152,28 @@ var res = 0;
 var x = 1;
 var tick = 0;
 
-foreach (var l in input.Split('\n'))
+input = input.Replace("addx", "noop\naddx");
+
+var lines = input.Split('\n');
+for (var i = 0; i < lines.Length; ++i)
 {
-    tick += 1;
+    if (x - 1 <= tick && x + 1 >= tick)
+        Console.Write('#');
+    else
+        Console.Write('.');
     
-    if ((tick - 20) % 40 == 0)
+    tick += 1;
+
+    if (lines[i][0] == 'a')
     {
-        res += tick * x;
+        x += int.Parse(lines[i].Split(' ')[1]);
     }
     
-    if(l[0] == 'a')
+    
+    if (tick % 40 == 0)
     {
-        tick += 1;
-        if ((tick - 20) % 40 == 0)
-        {
-            res += tick * x;
-        }
-
-        x += int.Parse(l.Split(' ')[1]);
+        Console.WriteLine();
+        tick = 0;
     }
 }
-
-Console.WriteLine(res);
+// Console.WriteLine(res);
