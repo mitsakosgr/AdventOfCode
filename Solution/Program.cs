@@ -1,150 +1,84 @@
-using System.Globalization;
+using System.Text.RegularExpressions;
 
-var input = @"v...>>.vv>
-.vv>>.vv..
->>.>v>...v
->>v>>.>.v.
-v>v.vv.v..
->.>>..v...
-.vv..>.>v.
-v.v..>>v.v
-....v..v.>";
+var input = @"R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20";
 
-var width = 0;
-var height = 0;
-var lines = input.Split('\n');
-height = lines.Length;
+var res = 0;
 
-var grid = new Node[0, 0];
-
-var bottomFacing = new List<Node>();
-var rightFacing = new List<Node>();
-
-for (var i = 0; i < lines.Length; i++)
+var posHead = (0, 0);
+var tails = new List<(int, int)>(9);
+for (var i = 0; i < 9; ++i)
 {
-    for (var j = 0; j < lines[i].Length; j++)
-    {
-        if (width == 0)
-        {
-            width = lines[i].Length;
-            grid = new Node[height, width];
-        }
-
-        grid[i, j] = new Node();
-
-        switch (lines[i][j])
-        {
-            case '>':
-                rightFacing.Add(grid[i, j]);
-                grid[i, j].Occupied = true;
-                break;
-            case 'v':
-                bottomFacing.Add(grid[i, j]);
-                grid[i, j].Occupied = true;
-                break;
-            default:
-                grid[i, j].Occupied = false;
-                break;
-        }
-    }
+    tails.Add(new(0, 0));
 }
 
-for (var i = 0; i < height; ++i)
+var positions = new HashSet<(int, int)>();
+positions.Add((0, 0));
+
+foreach (var l in input.Split('\n'))
 {
-    for (int j = 0; j < width; j++)
+    var movement = l.Split(' ');
+
+    var steps = int.Parse(movement[1]);
+
+    for (var i = 0; i < steps; ++i)
     {
-        grid[i, j].Bottom = grid[(i + 1) % height, j];
-        grid[i, j].Right = grid[i, (j + 1) % width];
-    }
-}
-
-// PrintGrid();
-
-var counter = 1;
-while (true)
-{
-    var moved = false;
-
-    var newRight = new List<Node>(rightFacing.Count);
-    foreach (var r in rightFacing)
-    {
-        if (r.Right.Occupied)
+        switch (movement[0])
         {
-            newRight.Add(r);
-            continue;
+            case "R":
+                posHead.Item2 += 1;
+                break;
+            case "L":
+                posHead.Item2 -= 1;
+                break;
+            case "U":
+                posHead.Item1 -= 1;
+                break;
+            case "D":
+                posHead.Item1 += 1;
+                break;
         }
 
-        moved = true;
-        newRight.Add(r.Right);
-    }
+        tails[0] = Reposition(posHead, tails[0]);
 
-    foreach (var n in rightFacing)
-        n.Occupied = false;
-    foreach (var n in newRight)
-        n.Occupied = true;
-    rightFacing = newRight;
-
-    var newBottom = new List<Node>(bottomFacing.Count);
-    foreach (var r in bottomFacing)
-    {
-        if (r.Bottom.Occupied)
+        for (int j = 1; j < 9; j++)
         {
-            newBottom.Add(r);
-            continue;
-        }
+            tails[j] = Reposition(tails[j - 1], tails[j]);
 
-        moved = true;
-        newBottom.Add(r.Bottom);
-    }
-    foreach (var n in bottomFacing)
-        n.Occupied = false;
-    foreach (var n in newBottom)
-        n.Occupied = true;
-    bottomFacing = newBottom;
-
-    // PrintGrid();
-
-    if (!moved) break;
-    ++counter;
-}
-
-Console.WriteLine(counter);
-
-void PrintGrid()
-{
-    for (var i = 0; i < height; ++i)
-    {
-        for (var j = 0; j < width; ++j)
-        {
-            if (grid[i, j].Occupied)
+            if (j == 8)
             {
-                if(rightFacing.Contains(grid[i,j]))
-                    Console.Write('>');
-                else
-                    Console.Write('v');
-            }
-            else
-            {
-                Console.Write('.');
+                positions.Add(tails[j]);
+                // Console.WriteLine(tails[j]);
             }
         }
-        Console.WriteLine();
     }
-    Console.WriteLine();
-    Console.WriteLine();
 }
 
-
-internal class Node
+(int, int) Reposition((int, int) head, (int, int) current)
 {
-    public Node Bottom { get; set; }
-    public Node Right { get; set; }
+    if (Math.Abs(head.Item1 - current.Item1) <= 1 && Math.Abs(head.Item2 - current.Item2) <= 1)
+        return current;
 
-    public bool Occupied { get; set; } = false;
-
-    public override string ToString()
+    if (head.Item1 == current.Item1)
+        current.Item2 += head.Item2 > current.Item2 ? 1 : -1;
+    else if (head.Item2 == current.Item2)
+        current.Item1 += head.Item1 > current.Item1 ? 1 : -1;
+    else
     {
-        return !Occupied ? "." : "#";
-
+        current.Item1 += head.Item1 > current.Item1 ? 1 : -1;
+        current.Item2 += head.Item2 > current.Item2 ? 1 : -1;
     }
+
+    return current;
 }
+
+
+
+
+Console.WriteLine(positions.Count);
