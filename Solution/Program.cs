@@ -1,84 +1,175 @@
 using System.Text.RegularExpressions;
 
-var input = @"R 5
-U 8
-L 8
-D 3
-R 17
-D 10
-L 25
-U 20";
+var input = @"addx 15
+addx -11
+addx 6
+addx -3
+addx 5
+addx -1
+addx -8
+addx 13
+addx 4
+noop
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx -35
+addx 1
+addx 24
+addx -19
+addx 1
+addx 16
+addx -11
+noop
+noop
+addx 21
+addx -15
+noop
+noop
+addx -3
+addx 9
+addx 1
+addx -3
+addx 8
+addx 1
+addx 5
+noop
+noop
+noop
+noop
+noop
+addx -36
+noop
+addx 1
+addx 7
+noop
+noop
+noop
+addx 2
+addx 6
+noop
+noop
+noop
+noop
+noop
+addx 1
+noop
+noop
+addx 7
+addx 1
+noop
+addx -13
+addx 13
+addx 7
+noop
+addx 1
+addx -33
+noop
+noop
+noop
+addx 2
+noop
+noop
+noop
+addx 8
+noop
+addx -1
+addx 2
+addx 1
+noop
+addx 17
+addx -9
+addx 1
+addx 1
+addx -3
+addx 11
+noop
+noop
+addx 1
+noop
+addx 1
+noop
+noop
+addx -13
+addx -19
+addx 1
+addx 3
+addx 26
+addx -30
+addx 12
+addx -1
+addx 3
+addx 1
+noop
+noop
+noop
+addx -9
+addx 18
+addx 1
+addx 2
+noop
+noop
+addx 9
+noop
+noop
+noop
+addx -1
+addx 2
+addx -37
+addx 1
+addx 3
+noop
+addx 15
+addx -21
+addx 22
+addx -6
+addx 1
+noop
+addx 2
+addx 1
+noop
+addx -10
+noop
+noop
+addx 20
+addx 1
+addx 2
+addx 2
+addx -6
+addx -11
+noop
+noop
+noop";
 
 var res = 0;
-
-var posHead = (0, 0);
-var tails = new List<(int, int)>(9);
-for (var i = 0; i < 9; ++i)
-{
-    tails.Add(new(0, 0));
-}
-
-var positions = new HashSet<(int, int)>();
-positions.Add((0, 0));
+var x = 1;
+var tick = 0;
 
 foreach (var l in input.Split('\n'))
 {
-    var movement = l.Split(' ');
-
-    var steps = int.Parse(movement[1]);
-
-    for (var i = 0; i < steps; ++i)
+    tick += 1;
+    
+    if ((tick - 20) % 40 == 0)
     {
-        switch (movement[0])
+        res += tick * x;
+    }
+    
+    if(l[0] == 'a')
+    {
+        tick += 1;
+        if ((tick - 20) % 40 == 0)
         {
-            case "R":
-                posHead.Item2 += 1;
-                break;
-            case "L":
-                posHead.Item2 -= 1;
-                break;
-            case "U":
-                posHead.Item1 -= 1;
-                break;
-            case "D":
-                posHead.Item1 += 1;
-                break;
+            res += tick * x;
         }
 
-        tails[0] = Reposition(posHead, tails[0]);
-
-        for (int j = 1; j < 9; j++)
-        {
-            tails[j] = Reposition(tails[j - 1], tails[j]);
-
-            if (j == 8)
-            {
-                positions.Add(tails[j]);
-                // Console.WriteLine(tails[j]);
-            }
-        }
+        x += int.Parse(l.Split(' ')[1]);
     }
 }
 
-(int, int) Reposition((int, int) head, (int, int) current)
-{
-    if (Math.Abs(head.Item1 - current.Item1) <= 1 && Math.Abs(head.Item2 - current.Item2) <= 1)
-        return current;
-
-    if (head.Item1 == current.Item1)
-        current.Item2 += head.Item2 > current.Item2 ? 1 : -1;
-    else if (head.Item2 == current.Item2)
-        current.Item1 += head.Item1 > current.Item1 ? 1 : -1;
-    else
-    {
-        current.Item1 += head.Item1 > current.Item1 ? 1 : -1;
-        current.Item2 += head.Item2 > current.Item2 ? 1 : -1;
-    }
-
-    return current;
-}
-
-
-
-
-Console.WriteLine(positions.Count);
+Console.WriteLine(res);
