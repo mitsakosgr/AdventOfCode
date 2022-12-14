@@ -67,9 +67,11 @@ var monkeys = input
     .Select(m => new Monkey(m))
     .ToList();
 
-var monkeysCounts = new int[monkeys.Count];
+var monkeysCounts = new long[monkeys.Count];
 
-for (var i = 0; i < 20; ++i)
+var lcm = monkeys.Aggregate(1, (acc, m) => acc * m.Test);
+
+for (var i = 0; i < 10_000; ++i)
 {
     for (var index = 0; index < monkeys.Count; index++)
     {
@@ -80,7 +82,8 @@ for (var i = 0; i < 20; ++i)
         {
             var current = m.Items.Dequeue();
             current = m.Operation(current);
-            current /= 3;
+            current %= lcm;
+            // current /= 3;
             if (current % m.Test == 0)
                 monkeys[m.TrueMonkey].Items.Enqueue(current);
             else
@@ -89,7 +92,7 @@ for (var i = 0; i < 20; ++i)
     }
 }
 
-Console.WriteLine(monkeysCounts.OrderByDescending(i => i).Take(2).Aggregate(1, (acc, val) => acc * val));
+Console.WriteLine(monkeysCounts.OrderByDescending(i => i).Take(2).Aggregate((long)1, (acc, val) => acc * val));
 
 
 internal class Monkey
@@ -103,7 +106,7 @@ internal class Monkey
 
     public Monkey(string input)
     {
-        Items = new Queue<BigInteger>();
+        Items = new Queue<long>();
         var startingItems = StartingRegex.Match(input);
         var item = StartingNumbersRegex.Matches(startingItems.Value);
         foreach (Match i in item)
@@ -128,8 +131,8 @@ internal class Monkey
         };
     }
 
-    public Queue<BigInteger> Items { get; }
-    public Func<BigInteger, BigInteger> Operation { get; }
+    public Queue<long> Items { get; }
+    public Func<long, long> Operation { get; }
 
     public int Test { get; }
     public int TrueMonkey { get; }
