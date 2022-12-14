@@ -1,179 +1,140 @@
 using System.ComponentModel;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
-var input = @"addx 15
-addx -11
-addx 6
-addx -3
-addx 5
-addx -1
-addx -8
-addx 13
-addx 4
-noop
-addx -1
-addx 5
-addx -1
-addx 5
-addx -1
-addx 5
-addx -1
-addx 5
-addx -1
-addx -35
-addx 1
-addx 24
-addx -19
-addx 1
-addx 16
-addx -11
-noop
-noop
-addx 21
-addx -15
-noop
-noop
-addx -3
-addx 9
-addx 1
-addx -3
-addx 8
-addx 1
-addx 5
-noop
-noop
-noop
-noop
-noop
-addx -36
-noop
-addx 1
-addx 7
-noop
-noop
-noop
-addx 2
-addx 6
-noop
-noop
-noop
-noop
-noop
-addx 1
-noop
-noop
-addx 7
-addx 1
-noop
-addx -13
-addx 13
-addx 7
-noop
-addx 1
-addx -33
-noop
-noop
-noop
-addx 2
-noop
-noop
-noop
-addx 8
-noop
-addx -1
-addx 2
-addx 1
-noop
-addx 17
-addx -9
-addx 1
-addx 1
-addx -3
-addx 11
-noop
-noop
-addx 1
-noop
-addx 1
-noop
-noop
-addx -13
-addx -19
-addx 1
-addx 3
-addx 26
-addx -30
-addx 12
-addx -1
-addx 3
-addx 1
-noop
-noop
-noop
-addx -9
-addx 18
-addx 1
-addx 2
-noop
-noop
-addx 9
-noop
-noop
-noop
-addx -1
-addx 2
-addx -37
-addx 1
-addx 3
-noop
-addx 15
-addx -21
-addx 22
-addx -6
-addx 1
-noop
-addx 2
-addx 1
-noop
-addx -10
-noop
-noop
-addx 20
-addx 1
-addx 2
-addx 2
-addx -6
-addx -11
-noop
-noop
-noop";
+var input = @"Monkey 0:
+  Starting items: 99, 67, 92, 61, 83, 64, 98
+  Operation: new = old * 17
+  Test: divisible by 3
+    If true: throw to monkey 4
+    If false: throw to monkey 2
+
+Monkey 1:
+  Starting items: 78, 74, 88, 89, 50
+  Operation: new = old * 11
+  Test: divisible by 5
+    If true: throw to monkey 3
+    If false: throw to monkey 5
+
+Monkey 2:
+  Starting items: 98, 91
+  Operation: new = old + 4
+  Test: divisible by 2
+    If true: throw to monkey 6
+    If false: throw to monkey 4
+
+Monkey 3:
+  Starting items: 59, 72, 94, 91, 79, 88, 94, 51
+  Operation: new = old * old
+  Test: divisible by 13
+    If true: throw to monkey 0
+    If false: throw to monkey 5
+
+Monkey 4:
+  Starting items: 95, 72, 78
+  Operation: new = old + 7
+  Test: divisible by 11
+    If true: throw to monkey 7
+    If false: throw to monkey 6
+
+Monkey 5:
+  Starting items: 76
+  Operation: new = old + 8
+  Test: divisible by 17
+    If true: throw to monkey 0
+    If false: throw to monkey 2
+
+Monkey 6:
+  Starting items: 69, 60, 53, 89, 71, 88
+  Operation: new = old + 5
+  Test: divisible by 19
+    If true: throw to monkey 7
+    If false: throw to monkey 1
+
+Monkey 7:
+  Starting items: 72, 54, 63, 80
+  Operation: new = old + 3
+  Test: divisible by 7
+    If true: throw to monkey 1
+    If false: throw to monkey 3
+";
 
 var res = 0;
-var x = 1;
-var tick = 0;
 
-input = input.Replace("addx", "noop\naddx");
+var monkeys = input
+    .Split("Monkey")
+    .Where(i => !string.IsNullOrWhiteSpace(i))
+    .Select(m => new Monkey(m))
+    .ToList();
 
-var lines = input.Split('\n');
-for (var i = 0; i < lines.Length; ++i)
+var monkeysCounts = new int[monkeys.Count];
+
+for (var i = 0; i < 20; ++i)
 {
-    if (x - 1 <= tick && x + 1 >= tick)
-        Console.Write('#');
-    else
-        Console.Write('.');
-    
-    tick += 1;
+    for (var index = 0; index < monkeys.Count; index++)
+    {
+        var m = monkeys[index];
 
-    if (lines[i][0] == 'a')
-    {
-        x += int.Parse(lines[i].Split(' ')[1]);
-    }
-    
-    
-    if (tick % 40 == 0)
-    {
-        Console.WriteLine();
-        tick = 0;
+        monkeysCounts[index] += m.Items.Count;
+        while (m.Items.Count > 0)
+        {
+            var current = m.Items.Dequeue();
+            current = m.Operation(current);
+            current /= 3;
+            if (current % m.Test == 0)
+                monkeys[m.TrueMonkey].Items.Enqueue(current);
+            else
+                monkeys[m.FalseMonkey].Items.Enqueue(current);
+        }
     }
 }
+
+Console.WriteLine(monkeysCounts.OrderByDescending(i => i).Take(2).Aggregate(1, (acc, val) => acc * val));
+
+
+internal class Monkey
+{
+    static readonly Regex StartingRegex = new Regex(@"Starting items: ([\d, ]*)");
+    static readonly Regex StartingNumbersRegex = new Regex(@"\d+");
+    static readonly Regex OperationRegex = new Regex(@"Operation: new = old ([*+]) (old|\d+)");
+    static readonly Regex TestRegex = new Regex(@"Test: divisible by (\d+)");
+    static readonly Regex TrueRegex = new Regex(@"If true: throw to monkey (\d+)");
+    static readonly Regex FalseRegex = new Regex(@"If false: throw to monkey (\d+)");
+
+    public Monkey(string input)
+    {
+        Items = new Queue<BigInteger>();
+        var startingItems = StartingRegex.Match(input);
+        var item = StartingNumbersRegex.Matches(startingItems.Value);
+        foreach (Match i in item)
+        {
+            Items.Enqueue(int.Parse(i.Value));
+        }
+
+        Test = int.Parse(TestRegex.Match(input).Groups[1].Value);
+        TrueMonkey = int.Parse(TrueRegex.Match(input).Groups[1].Value);
+        FalseMonkey = int.Parse(FalseRegex.Match(input).Groups[1].Value);
+
+        var parts = OperationRegex.Match(input);
+        Operation = current =>
+        {
+            var part1 = current;
+            var part2 = parts.Groups[2].Value == "old" ? current : int.Parse(parts.Groups[2].Value);
+
+            if (parts.Groups[1].Value == "+")
+                return part1 + part2;
+
+            return part1 * part2;
+        };
+    }
+
+    public Queue<BigInteger> Items { get; }
+    public Func<BigInteger, BigInteger> Operation { get; }
+
+    public int Test { get; }
+    public int TrueMonkey { get; }
+    public int FalseMonkey { get; }
+}
+
+
 // Console.WriteLine(res);
