@@ -73,10 +73,10 @@ for (var i = 0; i < height; i++)
     }
 }
 
-memoization[start.Item1, start.Item2] = 0;
+memoization[end.Item1, end.Item2] = 0;
 
 var queue = new Queue<(int, int)>();
-queue.Enqueue(start);
+queue.Enqueue(end);
 
 while (queue.TryDequeue(out var position))
 {
@@ -90,7 +90,7 @@ while (queue.TryDequeue(out var position))
     {
         nextPos = (x - 1, y);
         
-        if (maze[nextPos.Item1, nextPos.Item2] - maze[x, y] <= 1)
+        if (maze[x, y] - maze[nextPos.Item1, nextPos.Item2] <= 1)
         {
             if (memoization[nextPos.Item1, nextPos.Item2] > memoization[x, y] + 1)
             {
@@ -106,7 +106,7 @@ while (queue.TryDequeue(out var position))
     {
         nextPos = (x + 1, y);
         
-        if (maze[nextPos.Item1, nextPos.Item2] - maze[x, y] <= 1)
+        if (maze[x, y] - maze[nextPos.Item1, nextPos.Item2] <= 1)
         {
             if (memoization[nextPos.Item1, nextPos.Item2] > memoization[x, y] + 1)
             {
@@ -122,7 +122,7 @@ while (queue.TryDequeue(out var position))
     {
         nextPos = (x, y - 1);
         
-        if (maze[nextPos.Item1, nextPos.Item2] - maze[x, y] <= 1)
+        if (maze[x, y] - maze[nextPos.Item1, nextPos.Item2] <= 1)
         {
             if (memoization[nextPos.Item1, nextPos.Item2] > memoization[x, y] + 1)
             {
@@ -138,7 +138,7 @@ while (queue.TryDequeue(out var position))
     {
         nextPos = (x, y + 1);
         
-        if (maze[nextPos.Item1, nextPos.Item2] - maze[x, y] <= 1)
+        if (maze[x, y] - maze[nextPos.Item1, nextPos.Item2] <= 1)
         {
             if (memoization[nextPos.Item1, nextPos.Item2] > memoization[x, y] + 1)
             {
@@ -150,5 +150,17 @@ while (queue.TryDequeue(out var position))
     }
 }
 
+res = int.MaxValue;
+for (var i = 0; i < height; i++)
+{
+    for (var j = 0; j < width; ++j)
+    {
+        if (maze[i, j] == 'a')
+        {
+            if (res > memoization[i, j])
+                res = memoization[i, j];
+        }
+    }
+}
 
-Console.WriteLine(memoization[end.Item1, end.Item2]);
+Console.WriteLine(res);
